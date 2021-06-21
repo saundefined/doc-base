@@ -200,6 +200,26 @@ function checkCommonSectionOrder(DOMDocument $document, bool $isConstructorPage)
     $errors = [];
     $elements = [];
 
+    foreach ($document->getElementsByTagName('include') as $node) {
+        $pointer = $node->getAttribute('xpointer');
+
+        preg_match('/refsect1\[@role=\'([\S]+)\']/i', $pointer, $matches);
+        if (isset($matches[1])) {
+            $role = $matches[1];
+
+            if (!in_array($role, VALID_SECTION_ROLES)) {
+                $errors[] = "Invalid section role: '$role'";
+                continue;
+            }
+            if (in_array($role, $elements)) {
+                $errors[] = "Duplicate section: '$role'";
+                continue;
+            }
+            
+            $elements[] = $role;
+        }
+    }
+
     foreach ($document->getElementsByTagName('refsect1') as $node) {
         $role = $node->getAttribute('role');
         if (!in_array($role, VALID_SECTION_ROLES)) {
